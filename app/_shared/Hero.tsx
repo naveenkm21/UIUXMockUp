@@ -13,10 +13,11 @@ import {
     InputGroupButton,
     InputGroupTextarea,
 } from "@/components/ui/input-group"
-import { ChevronRight, Loader, PlaneIcon, Send } from 'lucide-react'
+import { ChevronRight, Loader, PlaneIcon, Send, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
-import { suggestions } from '@/data/constant'
+import { suggestions, crazyIdeas } from '@/data/constant'
+import IdeaBot from '@/components/IdeaBot'
 import { useAuth, useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import axios from 'axios'
@@ -25,8 +26,23 @@ import { toast } from 'sonner'
 function Hero() {
 
     const [userInput, setUserInput] = useState<string>()
+    const [surpriseAnim, setSurpriseAnim] = useState(false)
 
     const [device, setDevice] = useState<string>('mobile')
+
+    const surpriseMe = () => {
+        const lastIdea = userInput;
+        let pick = crazyIdeas[Math.floor(Math.random() * crazyIdeas.length)];
+        // avoid back-to-back repeat
+        let tries = 0;
+        while (pick.description === lastIdea && tries < 5) {
+            pick = crazyIdeas[Math.floor(Math.random() * crazyIdeas.length)];
+            tries++;
+        }
+        setUserInput(pick.description);
+        setSurpriseAnim(true);
+        setTimeout(() => setSurpriseAnim(false), 600);
+    }
 
     const { user } = useUser();
     const router = useRouter();
@@ -87,7 +103,25 @@ function Hero() {
             </div>
             <h2 className='text-5xl font-bold text-center'>Design High Quality <span className='text-primary'>Website and Mobile App</span> Designs</h2>
             <p className='text-center text-gray-600 text-lg mt-3'>From websites to mobile apps, we turn ideas into intuitive, high-impact digital experiences. ✨</p>
-            <div className="flex mt-5 w-full  gap-6 items-center justify-center">
+            {/* Surprise Me button */}
+            <div className='flex justify-center mt-5 w-full'>
+                <button
+                    onClick={surpriseMe}
+                    className={cn(
+                        'group relative inline-flex items-center gap-2 px-5 py-2 rounded-full',
+                        'bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400',
+                        'text-white text-sm font-medium shadow-md hover:shadow-lg',
+                        'transition-all duration-200 hover:scale-105 active:scale-95',
+                        surpriseAnim && 'animate-pulse'
+                    )}
+                >
+                    <Sparkles size={16} className={surpriseAnim ? 'animate-spin' : 'group-hover:rotate-12 transition-transform'} />
+                    Surprise Me
+                    <span className='text-[10px] opacity-80'>✨</span>
+                </button>
+            </div>
+
+            <div className="flex mt-4 w-full  gap-6 items-center justify-center">
                 <InputGroup className='max-w-xl bg-white z-10 rounded-2xl'>
                     <InputGroupTextarea
                         data-slot="input-group-control"
@@ -130,6 +164,11 @@ function Hero() {
                     </div>
                 ))}
             </div>
+
+            <IdeaBot onUseIdea={(prompt) => {
+                setUserInput(prompt);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }} />
         </div>
     )
 }
