@@ -23,7 +23,9 @@ function ProjectCanvasPlayground() {
     const { refreshData, setRefreshData } = useContext(RefreshDataContext);
     const [takeScreenshot, setTakeScreenshot] = useState<any>();
     const [generating, setGenerating] = useState(false);
-    const CONCURRENT_SCREEN_JOBS = 2;
+    // Serialize generation to stay under Groq free-tier TPM limits.
+    // The server-side helpers handle 429 retry-with-backoff automatically.
+    const CONCURRENT_SCREEN_JOBS = 1;
     useEffect(() => {
         projectId && GetProjectDetail();
     }, [projectId])
